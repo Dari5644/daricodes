@@ -10,9 +10,10 @@ const PORT = process.env.PORT || 3000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "";
 const OWNER_EMAIL = process.env.OWNER_EMAIL || "majddary965@gmail.com";
 const OWNER_PASSWORD = process.env.OWNER_PASSWORD || "Mmaa3551";
-const SESSION_SECRET = process.env.SESSION_SECRET || "change_this_long_random";
+const SESSION_SECRET = process.env.SESSION_SECRET || "fGFSgfs5R65sr@sDTT";
 const DATA_DIR = path.resolve(__dirname);
 const DB_PATH = path.join(DATA_DIR, "data.db");
+
 
 
 const app = express();
