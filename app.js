@@ -1,29 +1,11 @@
 const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-const RUNNERS=[
-  {lang:"python",name:"Programiz (Python)",url:"https://www.programiz.com/python-programming/online-compiler/"},
-  {lang:"python",name:"OnlineGDB (Python)",url:"https://www.onlinegdb.com/online_python_compiler"},
-  {lang:"html",name:"CodePen (HTML/CSS/JS)",url:"https://codepen.io/pen/"},
-  {lang:"html",name:"JSFiddle (HTML/JS/CSS)",url:"https://jsfiddle.net/"},
-  {lang:"javascript",name:"JSBin (javascript)",url:"https://jsbin.com/?js,output"},
-  {lang:"sql",name:"SQLite Online (sql)",url:"https://sqliteonline.com/"},
-  {lang:"sql",name:"DB Fiddle (sql)",url:"https://www.db-fiddle.com/"}
-];
-function linkbar(lang="all"){
-  const box=$("#runLinks"); if(!box) return; box.innerHTML="";
-  RUNNERS.filter(r=> lang==="all" || r.lang===lang).forEach(r=>{
-    const a=document.createElement("a"); a.className="chip"; a.target="_blank"; a.href=r.url; a.textContent=r.name; box.appendChild(a);
-  });
-}
-linkbar("all");
-
-// === Auth UI ===
+// === Auth
 async function me(){ const r=await fetch(`/api/auth/me`,{credentials:"include"}); return r.json(); }
 function authUI(user){
   const wrap=$("#authActions"); if(!wrap) return;
   if(user){
     wrap.innerHTML=`<span class="small" style="color:#9ad">${user.name||user.email}</span>
-      ${user.is_owner?`<a class="chip" href="/admin.html">لوحة المالك</a>`:""}
       <button id="btnLogout" class="chip">خروج</button>`;
     $("#btnLogout").onclick=async()=>{await fetch(`/api/auth/logout`,{method:"POST",credentials:"include"}); location.reload();};
   }else{
@@ -53,17 +35,18 @@ function openAuth(mode){
   };
 }
 
-// === Tabs + Search ===
+// === Tabs + Search
 $("#langTabs")?.addEventListener("click",e=>{
   if(e.target.matches(".tab")){ $$(".tab").forEach(b=>b.classList.remove("active")); e.target.classList.add("active");
-    const lang=e.target.dataset.lang; loadSnips({lang}); linkbar(lang);
+    const lang=e.target.dataset.lang; loadSnips({lang});
   }
 });
 $("#searchInput")?.addEventListener("input",e=>{
-  const active=$(".tab.active").dataset.lang; loadSnips({lang:active,q:e.target.value});
+  const active=$(".tab.active")?.dataset.lang || "all";
+  loadSnips({lang:active,q:e.target.value});
 });
 
-// === Load snips ===
+// === Snips
 async function loadSnips({lang="all", q=""}={}){
   const r=await fetch(`/api/snips?lang=${lang}&q=${encodeURIComponent(q)}`);
   const snips=await r.json();
@@ -81,8 +64,6 @@ async function loadSnips({lang="all", q=""}={}){
     grid.appendChild(n);
   }
 }
-
-// === Add snippet ===
 $("#btnAddSnippet")?.addEventListener("click", async()=>{
   const title=prompt("عنوان الكود؟"); if(!title) return;
   const lang=prompt("اللغة؟ (python/html/javascript/css/sql)"); if(!lang) return;
@@ -90,20 +71,24 @@ $("#btnAddSnippet")?.addEventListener("click", async()=>{
   const code=prompt("الصق الكود هنا")||"";
   const r=await fetch(`/api/snips`,{method:"POST",credentials:"include",headers:{'content-type':'application/json'},body:JSON.stringify({title,lang,description,code})});
   if(!r.ok) return alert("سجّل دخول أولاً");
-  const active=$(".tab.active").dataset.lang; loadSnips({lang:active,q:$("#searchInput").value});
+  const active=$(".tab.active")?.dataset.lang||"all"; loadSnips({lang:active,q:$("#searchInput").value});
 });
 
-// === Customer Service Chat (تبقى ولا تختفي + رد المالك خاص) ===
+// === خدمة العملاء (خيط الزائر ثابت + رد المالك يصل فورًا)
 const chatBox=$("#chatBox"), chatMsg=$("#chatMsg"), chatSend=$("#chatSend");
 async function loadThread(){
   if(!chatBox) return;
-  const r=await fetch(`/api/messages/thread`,{credentials:"include"});
-  const data=await r.json();
-  chatBox.innerHTML = data.map(m=>`
-    <div class="small" style="opacity:.8">${m.user_name||"زائر"} — ${new Date(m.created_at).toLocaleTimeString()}</div>
-    <div style="margin:4px 0 8px 0">${m.content}</div>
-    ${m.reply?`<div class="small" style="color:#36c9a6">رد المالك: ${m.reply}</div>`:""}
-  `).join("");
+  const r = await fetch(`/api/messages/thread`, { credentials:"include" });
+  const data = await r.json();
+  chatBox.innerHTML = data.map(m=>{
+    if (m.from_owner && m.reply) {
+      return `<div class="small" style="color:#36c9a6">رد المالك: ${m.reply}</div>`;
+    }
+    const head = `<div class="small" style="opacity:.8">${m.user_name||"زائر"} — ${new Date(m.created_at).toLocaleTimeString()}</div>`;
+    const body = `<div style="margin:4px 0 8px 0">${m.content||""}</div>`;
+    const rep  = m.reply ? `<div class="small" style="color:#36c9a6">رد المالك: ${m.reply}</div>` : "";
+    return head + body + rep;
+  }).join("");
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 chatSend?.addEventListener("click", async()=>{
@@ -113,5 +98,5 @@ chatSend?.addEventListener("click", async()=>{
 });
 setInterval(loadThread, 3000);
 
-// === init ===
+// === init
 (async ()=>{ const m0=await me(); authUI(m0.user||null); loadSnips(); loadThread(); })();

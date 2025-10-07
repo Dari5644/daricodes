@@ -1,13 +1,15 @@
 {
   "name": "dharicodes",
   "version": "1.0.0",
-  "description": "Dhari Codes on Render",
+  "description": "منصة ضاري للأكواد - Node + SQLite (Render)",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "express-session": "^1.17.3",
-    "uuid": "^9.0.1"
+  "dependencies" : {
+  "better-sqlite3": "^9.4.0",
+  "cors": "^2.8.5",
+  "express": "^4.19.2",
+  "express-session": "^1.17.3",
+  "uuid": "^9.0.1",
+  "bcryptjs": "^2.4.3"
   }
 }
