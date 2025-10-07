@@ -12,8 +12,8 @@ const OWNER_EMAIL = process.env.OWNER_EMAIL || "majddary965@gmail.com";
 const OWNER_PASSWORD = process.env.OWNER_PASSWORD || "Mmaa3551";
 const SESSION_SECRET = process.env.SESSION_SECRET || "change_this_long_random";
 const DATA_DIR = path.resolve(__dirname);
-
 const DB_PATH = path.join(DATA_DIR, "data.db");
+
 
 const app = express();
 if (FRONTEND_ORIGIN) app.use(cors({ origin: FRONTEND_ORIGIN, credentials: true }));
