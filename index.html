@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>منصة ضاري للأكواد</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="logo">«{ }»</span><h1>منصة ضاري للأكواد</h1></div>
+  <nav class="tabs" id="langTabs">
+    <button class="tab active" data-lang="all">الكل</button>
+    <button class="tab" data-lang="python">بايثون</button>
+    <button class="tab" data-lang="html">هتمل</button>
+    <button class="tab" data-lang="javascript">جافاسكربت</button>
+    <button class="tab" data-lang="css">سي إس إس</button>
+    <button class="tab" data-lang="sql">إس كيو إل</button>
+  </nav>
+  <div class="actions" id="authActions"></div>
+</header>
+
+<main class="container">
+  <aside class="card">
+    <h3>تشغيل الكود أونلاين</h3>
+    <div id="runLinks" class="linkbar"></div>
+    <hr/>
+    <h3>بحث</h3>
+    <input id="searchInput" class="input" placeholder="ابحث عن كود…"/>
+    <button id="btnAddSnippet" class="primary" style="margin-top:8px">+ أضف كود</button>
+    <hr/>
+    <h3>خدمة العملاء</h3>
+    <div id="chatBox" class="card" style="height:160px;overflow:auto"></div>
+    <div class="row">
+      <input id="chatMsg" class="input" placeholder="اكتب رسالتك"/>
+      <button id="chatSend" class="primary">إرسال</button>
+    </div>
+  </aside>
+
+  <section class="card">
+    <div id="resultsMeta" class="results-meta"></div>
+    <div id="cards" class="grid"></div>
+  </section>
+</main>
+
+<footer>© منصة ضاري للأكواد</footer>
+
+<template id="cardTemplate">
+  <article class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h3 class="title"></h3><div class="small meta"></div></div>
+      <div class="row"><button class="chip copy">نسخ</button><button class="chip view">عرض</button></div>
+    </div>
+    <div class="small tags" style="margin:6px 0"></div>
+    <pre class="code"></pre>
+  </article>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
