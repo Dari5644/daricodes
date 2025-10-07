@@ -1,4 +1,3 @@
-const API_BASE = ""; // نفس الأصل
 const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
 const RUNNERS=[
@@ -10,21 +9,20 @@ const RUNNERS=[
   {lang:"sql",name:"SQLite Online (sql)",url:"https://sqliteonline.com/"},
   {lang:"sql",name:"DB Fiddle (sql)",url:"https://www.db-fiddle.com/"}
 ];
-
 function linkbar(lang="all"){
-  const box=$("#runLinks"); box.innerHTML="";
+  const box=$("#runLinks"); if(!box) return; box.innerHTML="";
   RUNNERS.filter(r=> lang==="all" || r.lang===lang).forEach(r=>{
     const a=document.createElement("a"); a.className="chip"; a.target="_blank"; a.href=r.url; a.textContent=r.name; box.appendChild(a);
   });
 }
 linkbar("all");
 
-// auth
+// === Auth UI ===
 async function me(){ const r=await fetch(`/api/auth/me`,{credentials:"include"}); return r.json(); }
 function authUI(user){
-  const wrap=$("#authActions");
+  const wrap=$("#authActions"); if(!wrap) return;
   if(user){
-    wrap.innerHTML=`<span class="small" style="color:#9ad">${user.email}</span>
+    wrap.innerHTML=`<span class="small" style="color:#9ad">${user.name||user.email}</span>
       ${user.is_owner?`<a class="chip" href="/admin.html">لوحة المالك</a>`:""}
       <button id="btnLogout" class="chip">خروج</button>`;
     $("#btnLogout").onclick=async()=>{await fetch(`/api/auth/logout`,{method:"POST",credentials:"include"}); location.reload();};
@@ -36,7 +34,7 @@ function authUI(user){
   }
 }
 function openAuth(mode){
-  const m=document.createElement("div"); m.className="card"; m.style.position="fixed"; m.style.inset="0"; m.style.margin="auto"; m.style.maxWidth="360px";
+  const m=document.createElement("div"); m.className="card"; m.style.position="fixed"; m.style.inset="0"; m.style.margin="auto"; m.style.maxWidth="360px"; m.style.zIndex="1000";
   m.innerHTML=`<div><h3>${mode==='login'?'تسجيل دخول':'إنشاء حساب'}</h3>
   <input id="em" class="input" placeholder="البريد">
   <input id="pw" class="input" type="password" placeholder="كلمة السر" style="margin-top:6px">
@@ -55,23 +53,27 @@ function openAuth(mode){
   };
 }
 
-// tabs
-$("#langTabs").addEventListener("click",e=>{
+// === Tabs + Search ===
+$("#langTabs")?.addEventListener("click",e=>{
   if(e.target.matches(".tab")){ $$(".tab").forEach(b=>b.classList.remove("active")); e.target.classList.add("active");
     const lang=e.target.dataset.lang; loadSnips({lang}); linkbar(lang);
   }
 });
+$("#searchInput")?.addEventListener("input",e=>{
+  const active=$(".tab.active").dataset.lang; loadSnips({lang:active,q:e.target.value});
+});
 
-// load snips
+// === Load snips ===
 async function loadSnips({lang="all", q=""}={}){
-  const r=await fetch(`/api/snips?lang=${lang}&q=${encodeURIComponent(q)}`); const snips=await r.json();
+  const r=await fetch(`/api/snips?lang=${lang}&q=${encodeURIComponent(q)}`);
+  const snips=await r.json();
   $("#resultsMeta").textContent=`${snips.length} نتيجة`;
   const grid=$("#cards"); grid.innerHTML="";
   const t=$("#cardTemplate");
   for(const s of snips){
     const n=t.content.cloneNode(true);
     n.querySelector(".title").textContent=s.title;
-    n.querySelector(".meta").textContent=`${s.lang} • ${s.owner_email}`;
+    n.querySelector(".meta").textContent=`${s.lang} • ${s.owner_name||s.owner_email}`;
     n.querySelector(".tags").textContent=s.description||"";
     n.querySelector(".code").textContent=s.code;
     n.querySelector(".copy").onclick=()=>navigator.clipboard.writeText(s.code);
@@ -79,12 +81,9 @@ async function loadSnips({lang="all", q=""}={}){
     grid.appendChild(n);
   }
 }
-$("#searchInput").addEventListener("input",e=>{
-  const active=$(".tab.active").dataset.lang; loadSnips({lang:active,q:e.target.value});
-});
 
-// add snippet
-$("#btnAddSnippet").onclick=async()=>{
+// === Add snippet ===
+$("#btnAddSnippet")?.addEventListener("click", async()=>{
   const title=prompt("عنوان الكود؟"); if(!title) return;
   const lang=prompt("اللغة؟ (python/html/javascript/css/sql)"); if(!lang) return;
   const description=prompt("وصف؟")||"";
@@ -92,14 +91,27 @@ $("#btnAddSnippet").onclick=async()=>{
   const r=await fetch(`/api/snips`,{method:"POST",credentials:"include",headers:{'content-type':'application/json'},body:JSON.stringify({title,lang,description,code})});
   if(!r.ok) return alert("سجّل دخول أولاً");
   const active=$(".tab.active").dataset.lang; loadSnips({lang:active,q:$("#searchInput").value});
-};
+});
 
-// chat
-$("#chatSend").onclick=async()=>{
-  const txt=$("#chatMsg").value.trim(); if(!txt) return;
-  await fetch(`/api/messages`,{method:"POST",headers:{'content-type':'application/json'},body:JSON.stringify({content:txt,user_email:($("#authActions .small")||{}).textContent||"زائر"})});
-  $("#chatBox").innerHTML+=`<div class="small">أنت: ${txt}</div>`; $("#chatMsg").value="";
-};
+// === Customer Service Chat (تبقى ولا تختفي + رد المالك خاص) ===
+const chatBox=$("#chatBox"), chatMsg=$("#chatMsg"), chatSend=$("#chatSend");
+async function loadThread(){
+  if(!chatBox) return;
+  const r=await fetch(`/api/messages/thread`,{credentials:"include"});
+  const data=await r.json();
+  chatBox.innerHTML = data.map(m=>`
+    <div class="small" style="opacity:.8">${m.user_name||"زائر"} — ${new Date(m.created_at).toLocaleTimeString()}</div>
+    <div style="margin:4px 0 8px 0">${m.content}</div>
+    ${m.reply?`<div class="small" style="color:#36c9a6">رد المالك: ${m.reply}</div>`:""}
+  `).join("");
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+chatSend?.addEventListener("click", async()=>{
+  const txt=chatMsg.value.trim(); if(!txt) return;
+  await fetch(`/api/messages`,{method:"POST",credentials:"include",headers:{'content-type':'application/json'},body:JSON.stringify({content:txt})});
+  chatMsg.value=""; await loadThread();
+});
+setInterval(loadThread, 3000);
 
-// init
-(async ()=>{ const m0=await me(); authUI(m0.user||null); loadSnips(); })();
+// === init ===
+(async ()=>{ const m0=await me(); authUI(m0.user||null); loadSnips(); loadThread(); })();
