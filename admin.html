@@ -1,27 +1,17 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>لوحة المالك</title>
-  <link rel="stylesheet" href="styles.css"/>
-</head>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>لوحة المالك</title><meta name="robots" content="noindex,nofollow"><link rel="stylesheet" href="styles.css"/></head>
 <body>
-<header class="topbar"><h1>لوحة المالك</h1><a class="chip" href="/">الواجهة</a></header>
-<main class="container" style="grid-template-columns:1fr 1fr">
-  <section class="card">
-    <h3>الأكواد</h3>
-    <div id="adminSnips"></div>
-  </section>
-  <section class="card">
+<header class="topbar"><div class="brand"><span class="logo">«{ }»</span><h1>لوحة المالك</h1></div><div class="actions"><a class="chip" href="index.html">العودة</a></div></header>
+<main class="container">
+  <section class="card" style="grid-column:1/-1">
     <h3>المحادثات</h3>
-    <div id="adminMsgs"></div>
+    <div style="display:grid;grid-template-columns:320px 1fr;gap:12px">
+      <div class="card"><input id="q" class="input" placeholder="بحث"><div id="threads" style="margin-top:8px;max-height:60vh;overflow:auto"></div></div>
+      <div class="card"><div id="convHeader" class="small">لا توجد محادثة</div><div id="convBody" style="height:60vh;overflow:auto;margin-top:8px"></div><div class="row"><input id="replyInput" class="input" placeholder="اكتب رد"><button id="replySend" class="primary">إرسال</button></div></div>
+    </div>
   </section>
-  <section class="card">
-    <h3>المستخدمون</h3>
-    <div id="adminUsers"></div>
-  </section>
+  <section class="card"><h3>المستخدمون</h3><div id="users" style="max-height:240px;overflow:auto"></div></section>
+  <section class="card"><h3>الأكواد</h3><div id="snips" style="max-height:240px;overflow:auto"></div></section>
 </main>
 <script src="admin.js"></script>
-</body>
-</html>
+</body></html>

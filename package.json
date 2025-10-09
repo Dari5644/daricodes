@@ -1,7 +1,6 @@
 {
   "name": "dharicodes",
   "version": "1.0.0",
-  "description": "منصة ضاري للأكواد - Node + SQLite (Render)",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {

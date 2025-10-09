@@ -3,13 +3,16 @@ const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(
 // Auth
 async function me(){ const r=await fetch(`/api/auth/me`,{credentials:"include"}); return r.json(); }
 function authUI(user){
-  const wrap=$("#authActions"); if(!wrap) return;
+  const wrap=document.querySelector("#authActions");
   if(user){
-    wrap.innerHTML=`<span class="small" style="color:#9ad">${user.name||user.email}</span>
-      <a class="chip" href="/admin.html">لوحة المالك</a>
+    wrap.innerHTML = `
+      <span class="small" style="color:#9ad">${user.name||user.email}</span>
+      ${user.is_owner ? `<a class="chip" href="/admin.html">لوحة المالك</a>` : ``}
       <button id="btnLogout" class="chip">خروج</button>`;
-    $("#btnLogout").onclick=async()=>{await fetch(`/api/auth/logout`,{method:"POST",credentials:"include"}); location.reload();};
-  }else{
+    // ...
+  } else {
+    // أزرار الدخول/الإنشاء
+  
     wrap.innerHTML=`<button class="chip" id="btnLogin">تسجيل دخول</button>
       <button class="chip" id="btnSignup">إنشاء حساب</button>`;
     $("#btnLogin").onclick=()=>openAuth("login");

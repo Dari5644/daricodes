@@ -3,50 +3,45 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>منصة ضاري للأكواد</title>
+  <title>منصة ضاري للأكواد | Dhari Codes Platform</title>
+  <meta name="description" content="منصة ضاري للأكواد: مكتبة أكواد عربية مع بحث وتصنيفات، وروابط تشغيل الأكواد، وحسابات ومحادثات ولوحة مالك.">
+  <link rel="canonical" href="https://example.com/">
+  <meta property="og:title" content="منصة ضاري للأكواد"><meta property="og:description" content="مكتبة أكواد عربية + حسابات + محادثات + إدارة."><meta property="og:type" content="website">
+  <meta name="robots" content="index,follow">
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
 <header class="topbar">
   <div class="brand"><span class="logo">«{ }»</span><h1>منصة ضاري للأكواد</h1></div>
-  <nav class="tabs" id="langTabs">
-    <button class="tab active" data-lang="all">الكل</button>
+  <div class="tabs" id="langTabs">
+    <button class="tab" data-lang="all">الكل</button>
     <button class="tab" data-lang="python">بايثون</button>
     <button class="tab" data-lang="html">هتمل</button>
     <button class="tab" data-lang="javascript">جافاسكربت</button>
-    <button class="tab" data-lang="css">سي إس إس</button>
-    <button class="tab" data-lang="sql">إس كيو إل</button>
-  </nav>
+    <button class="tab" data-lang="css">سي اس اس</button>
+    <button class="tab" data-lang="sql">اس كيو ال</button>
+  </div>
   <div class="actions" id="authActions"></div>
 </header>
 
 <main class="container">
   <aside class="card">
-    <h3>بحث</h3>
-    <input id="searchInput" class="input" placeholder="ابحث عن كود…"/>
-    <button id="btnAddSnippet" class="primary" style="margin-top:8px">+ أضف كود</button>
-    <hr/>
-    <h3>خدمة العملاء</h3>
-    <div id="chatBox" class="card" style="height:220px;overflow:auto"></div>
-    <div class="row">
-      <input id="chatMsg" class="input" placeholder="اكتب رسالتك"/>
-      <button id="chatSend" class="primary">إرسال</button>
-    </div>
+    <h3>تشغيل الكود أونلاين</h3><div id="runLinks" class="linkbar"></div><hr/>
+    <h3>بحث</h3><input id="searchInput" class="input" placeholder="ابحث عن كود…"/><button id="btnAddSnippet" class="primary" style="margin-top:8px">+ أضف كود</button><hr/>
+    <h3>خدمة العملاء</h3><div id="chatBox" class="card" style="height:160px;overflow:auto"></div><div class="row"><input id="chatMsg" class="input" placeholder="اكتب رسالتك (جرّب: ضاري ماجد تست)"/><button id="chatSend" class="primary">إرسال</button></div>
   </aside>
-
-  <section class="card">
-    <div id="resultsMeta" class="results-meta"></div>
-    <div id="cards" class="grid"></div>
-  </section>
+  <section class="card"><div id="resultsMeta" class="results-meta"></div><div id="cards" class="grid"></div></section>
 </main>
-
-<footer>© منصة ضاري للأكواد</footer>
+<footer>© 2025-10-04 منصة ضاري للأكواد — Dhari Codes</footer>
 
 <template id="cardTemplate">
   <article class="card">
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div><h3 class="title"></h3><div class="small meta"></div></div>
-    <div class="row"><button class="chip copy">نسخ</button><button class="chip view">عرض</button></div>
+      <div class="row">
+        <button class="chip copy">نسخ</button>
+        <button class="chip view">عرض</button>
+      </div>
     </div>
     <div class="small tags" style="margin:6px 0"></div>
     <pre class="code"></pre>

@@ -1,66 +1,10 @@
+
 const $=(s,r=document)=>r.querySelector(s);
-
-async function mustOwner(){
-  const r=await fetch(`/api/auth/me`,{credentials:"include"}); const d=await r.json();
-  if(!(d.user && d.user.is_owner)) location.href="/";
-}
-
-async function loadSnips(){
-  const r=await fetch(`/api/snips`); const s=await r.json();
-  const box=$("#adminSnips"); box.innerHTML="";
-  s.forEach(x=>{
-    const row=document.createElement("div");
-    row.className="card"; row.style.marginBottom="8px";
-    row.innerHTML=`<div class="row" style="justify-content:space-between">
-      <div><b>${x.title}</b> • <span class="small">${x.lang}</span><div class="small">${x.owner_name||x.owner_email}</div></div>
-      <button class="chip del">حذف</button></div>
-      <pre class="code" style="margin-top:6px">${x.code}</pre>`;
-    row.querySelector(".del").onclick=async()=>{
-      if(!confirm("حذف الكود؟")) return;
-      const rr=await fetch(`/api/snips/${x.id}`,{method:"DELETE",credentials:"include"});
-      if(rr.ok) loadSnips(); else alert("فشل الحذف");
-    };
-    box.appendChild(row);
-  });
-}
-
-async function loadMsgs(){
-  const r=await fetch(`/api/messages`,{credentials:"include"}); const ms=await r.json();
-  const box=$("#adminMsgs"); box.innerHTML="";
-  ms.forEach(m=>{
-    const d=document.createElement("div"); d.className="card"; d.style.marginBottom="8px";
-    d.innerHTML=`
-      <div class="small">${new Date(m.created_at).toLocaleString()} • ${m.user_name||"زائر"}</div>
-      ${m.content?`<div style="margin:6px 0">${m.content}</div>`:""}
-      ${m.reply?`<div class="small" style="color:#36c9a6">رد سابق: ${m.reply}</div>`:""}
-      <div class="row"><input class="input reply" placeholder="رد..." value=""><button class="chip send">إرسال الرد</button></div>`;
-    d.querySelector(".send").onclick=async()=>{
-      const reply=d.querySelector(".reply").value.trim();
-      if(!reply) return;
-      await fetch(`/api/messages/${m.id}/reply`,{method:"POST",credentials:"include",headers:{'content-type':'application/json'},body:JSON.stringify({reply})});
-      await loadMsgs();
-    };
-    box.appendChild(d);
-  });
-}
-
-async function loadUsers(){
-  const r=await fetch(`/api/users`,{credentials:"include"}); const users=await r.json();
-  const box=$("#adminUsers"); box.innerHTML="";
-  users.forEach(u=>{
-    const d=document.createElement("div"); d.className="card"; d.style.marginBottom="8px";
-    d.innerHTML=`<div class="row" style="justify-content:space-between">
-      <div><b>${u.name||u.email}</b> • <span class="small">${u.email}</span>${u.is_owner?` <span class="chip">المالك</span>`:""}</div>
-      ${u.is_owner?``:`<button class="chip del">حذف</button>`}
-    </div>`;
-    const del=d.querySelector(".del");
-    if(del) del.onclick=async()=>{
-      if(!confirm("حذف هذا المستخدم وجميع متعلقاته؟")) return;
-      const rr=await fetch(`/api/users/${u.id}`,{method:"DELETE",credentials:"include"});
-      if(rr.ok) loadUsers(); else alert("فشل الحذف");
-    };
-    box.appendChild(d);
-  });
-}
-
-(async()=>{ await mustOwner(); await loadSnips(); await loadMsgs(); await loadUsers(); })();
+async function api(p,o={}){ const r=await fetch(p,Object.assign({headers:{'Content-Type':'application/json'}},o)); if(!r.ok) throw new Error(await r.text().catch(()=>r.statusText)); return r.json(); }
+let CUR_UID=null;
+document.addEventListener('DOMContentLoaded', async ()=>{ try{ const me=(await api('/api/me')).user; if(!me||!me.is_owner){ alert('للمالك فقط'); location.href='index.html'; return; } }catch{ location.href='index.html'; return; } $('#replySend').onclick=sendReply; $('#q').addEventListener('input', e=> loadThreads(e.target.value)); await loadThreads(); await loadUsers(); await loadSnips(); });
+async function loadThreads(q=''){ const rows=await api('/api/admin/threads?q='+encodeURIComponent(q||'')); const root=$('#threads'); root.innerHTML=''; rows.forEach(t=>{ const d=document.createElement('div'); d.className='card'; d.style.margin='6px 0'; d.innerHTML=`<div><strong>${t.user_email||('user#'+t.user_id)}</strong></div><div class='small'>${t.last_body||''}</div>`; d.onclick=()=>openThread(t.user_id,t.user_email); root.appendChild(d); }); }
+async function openThread(uid,email){ CUR_UID=uid; $('#convHeader').textContent='محادثة: '+(email||('user#'+uid)); const msgs=await api('/api/admin/thread/'+uid); const body=$('#convBody'); body.innerHTML=''; msgs.forEach(m=>{ const b=document.createElement('div'); b.className='chip'; b.style.display='block'; b.style.margin='6px 0'; b.style.background=m.from_owner?'#0d2b22':'#111522'; b.textContent=m.body; body.appendChild(b); }); body.scrollTop=body.scrollHeight; }
+async function sendReply(){ const txt=($('#replyInput').value||'').trim(); if(!txt||!CUR_UID) return; await api('/api/admin/thread/'+CUR_UID+'/reply',{method:'POST',body:JSON.stringify({body:txt})}); $('#replyInput').value=''; await openThread(CUR_UID); }
+async function loadUsers(){ const rows=await api('/api/admin/users'); const root=$('#users'); root.innerHTML=''; rows.forEach(u=>{ const d=document.createElement('div'); d.className='row'; d.style.justifyContent='space-between'; d.innerHTML=`<div><strong>${u.email}</strong><div class='small'>${u.name||''}</div></div>`; const btn=document.createElement('button'); btn.className='chip'; btn.textContent='حذف'; btn.onclick=async()=>{ if(!confirm('حذف المستخدم وكل بياناته؟')) return; await api('/api/admin/users/'+u.id,{method:'DELETE'}); await loadUsers(); await loadSnips(); }; d.appendChild(btn); root.appendChild(d); }); }
+async function loadSnips(){ const rows=await api('/api/snippets'); const root=$('#snips'); root.innerHTML=''; rows.forEach(s=>{ const d=document.createElement('div'); d.className='row'; d.style.justifyContent='space-between'; d.innerHTML=`<div><strong>${s.title}</strong><div class='small'>${s.lang} · ${s.owner_email||'مجهول'}</div></div>`; const btn=document.createElement('button'); btn.className='chip'; btn.textContent='حذف'; btn.onclick=async()=>{ if(!confirm('حذف الكود؟')) return; await api('/api/snippets/'+s.id,{method:'DELETE'}); await loadSnips(); }; d.appendChild(btn); root.appendChild(d); }); }
